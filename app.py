@@ -1372,7 +1372,9 @@ if page == "🏠 Home":
     - 🏛️ Government Schemes - Get the money you deserve
     - 📈 Health Dashboard - See your progress
     - 🧠 Mental Health - Postpartum depression screening
-    
+       
+       """)
+    st.markdown("""
     ### How to use:
     1. First, go to **📝 Register** and enter your details
     2. Then use **📊 Health Tracker** daily
