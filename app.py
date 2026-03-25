@@ -1365,7 +1365,7 @@ if page == "🏠 Home":
     
     This app helps pregnant women in rural areas by providing:
     
-    - 📊 **Health Tracking** — Log your daily vitals
+    -  **Health Tracking** — Log your daily vitals
     - 💊 **Medicine Reminders** — Never miss your supplements
     - 🥗 **Nutrition Guide** — Eat right for your baby
     - 🔮 **Risk Assessment** — AI-powered health predictions
