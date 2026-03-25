@@ -1345,80 +1345,73 @@ page = st.sidebar.radio("Go to:", [
 ])
 
 # ============================================
-# PAGE 1: HOME
-# ============================================
-if page == "🏠 Home":
-    st.title("🤱 Smart Maternal Health Platform")
-    st.markdown("### *From Pregnancy to Recovery — Powered by Data*")
-    st.markdown("---")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("👩 Total Users", "1,247")
-    col2.metric("🔴 High Risk", "43")
-    col3.metric("💊 Medicine Compliance", "78%")
-    col4.metric("💰 Schemes Claimed", "₹12.5L")
-    
-    st.markdown("---")
-    
-    st.markdown("""
-    ## Welcome! 🙏
-    
-    This app helps pregnant women in rural areas by providing:
-    
-    -  Health Tracking - Log your daily vitals
-    - 💊 Medicine Reminders - Never miss your supplements
-    - 🥗 Nutrition Guide - Eat right for your baby
-    - 🔮 Risk Assessment - AI-powered health predictions
-    - 🏛️ Government Schemes - Get the money you deserve
-    - 📈 Health Dashboard - See your progress
-    - 🧠 Mental Health - Postpartum depression screening
-       
-       """)
-    st.markdown("""
-    ### How to use:
-    1. First, go to **📝 Register** and enter your details
-    2. Then use **📊 Health Tracker** daily
-    3. Check **💊 Medicine Tracker** every morning
-    4. Visit **🏛️ Government Schemes** to see your benefits
-    """)
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Total Users", "1,247")
+col2.metric("High Risk Cases", "43")
+col3.metric("Medicine Compliance", "78%")
+col4.metric("Schemes Claimed", "₹12.5L")
+
+st.markdown("---")
+
+st.markdown("""
+## Welcome!
+
+This app helps pregnant women in rural areas by providing:
+
+- Health Tracking - Log your daily vitals
+- Medicine Reminders - Never miss your supplements
+- Nutrition Guide - Eat right for your baby
+- Risk Assessment - AI-powered health predictions
+- Government Schemes - Get the money you deserve
+- Health Dashboard - See your progress
+- Mental Health - Postpartum depression screening
+""")
+
+st.markdown("""
+### How to use:
+1. First, go to **Register** and enter your details
+2. Then use **Health Tracker** daily
+3. Check **Medicine Tracker** every morning
+4. Visit **Government Schemes** to see your benefits
+""")
 
 # ============================================
 # PAGE 2: REGISTRATION
 # ============================================
 elif page == "📝 Register":
-    st.title("📝 New Registration")
+    st.title("New Registration")
     st.markdown("Enter the pregnant woman's details below:")
     st.markdown("---")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        name = st.text_input("👩 Full Name", placeholder="Enter full name")
-        age = st.number_input("📅 Age", min_value=15, max_value=50, value=25)
-        phone = st.text_input("📱 Phone Number", placeholder="10 digit number")
-        village = st.text_input("🏘️ Village", placeholder="Village name")
-        district = st.text_input("📍 District", placeholder="District name")
-        state = st.selectbox("🗺️ State", [
+        name = st.text_input("Full Name", placeholder="Enter full name")
+        age = st.number_input("Age", min_value=15, max_value=50, value=25)
+        phone = st.text_input("Phone Number", placeholder="10 digit number")
+        village = st.text_input("Village", placeholder="Village name")
+        district = st.text_input("District", placeholder="District name")
+        state = st.selectbox("State", [
             "Uttar Pradesh", "Bihar", "Madhya Pradesh", "Rajasthan",
             "Jharkhand", "Odisha", "Chhattisgarh", "Assam",
             "West Bengal", "Maharashtra", "Other"
         ])
-    
+
     with col2:
-        lmp_date = st.date_input("🩸 Last Menstrual Period (LMP) Date")
-        height = st.number_input("📏 Height (cm)", min_value=120, max_value=200, value=155)
-        weight = st.number_input("⚖️ Current Weight (kg)", min_value=30.0, max_value=150.0, value=55.0)
-        blood_group = st.selectbox("🩸 Blood Group", [
+        lmp_date = st.date_input("Last Menstrual Period (LMP) Date")
+        height = st.number_input("Height (cm)", min_value=120, max_value=200, value=155)
+        weight = st.number_input("Current Weight (kg)", min_value=30.0, max_value=150.0, value=55.0)
+        blood_group = st.selectbox("Blood Group", [
             "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "Don't know"
         ])
-        previous_pregnancies = st.number_input("🤰 Previous Pregnancies", min_value=0, max_value=10, value=0)
-        previous_complications = st.selectbox("⚠️ Any Previous Complications?", [
+        previous_pregnancies = st.number_input("Previous Pregnancies", min_value=0, max_value=10, value=0)
+        previous_complications = st.selectbox("Any Previous Complications?", [
             "No", "High BP", "Diabetes", "Miscarriage", "C-Section", "Other"
         ])
-    
+
     st.markdown("---")
-    
-    if st.button("✅ Register Now", type="primary"):
+
+    if st.button("Register Now", type="primary"):
         if name and phone:
             # Calculate pregnancy details
             from datetime import date, timedelta
@@ -1426,7 +1419,7 @@ elif page == "📝 Register":
             days_pregnant = (today - lmp_date).days
             current_week = days_pregnant // 7
             edd = lmp_date + timedelta(days=280)
-            
+
             # Determine trimester
             if current_week <= 12:
                 trimester = "First Trimester"
@@ -1434,19 +1427,12 @@ elif page == "📝 Register":
                 trimester = "Second Trimester"
             else:
                 trimester = "Third Trimester"
-            
+
             # Calculate BMI
             height_m = height / 100
             bmi = weight / (height_m ** 2)
-            # Save to database
-            user_id = add_user(
-                name, age, phone, village, district, state,
-                str(lmp_date), str(edd), current_week, trimester,
-                weight, height, round(bmi, 1), blood_group,
-                previous_pregnancies, previous_complications
-            )
-            st.session_state['user_id'] = user_id
-            # Save to session state (temporary storage)
+
+            # Save to session state
             st.session_state['user_data'] = {
                 'name': name,
                 'age': age,
