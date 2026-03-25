@@ -1366,12 +1366,12 @@ if page == "🏠 Home":
     This app helps pregnant women in rural areas by providing:
     
     -  Health Tracking - Log your daily vitals
-    - 💊 **Medicine Reminders** — Never miss your supplements
-    - 🥗 **Nutrition Guide** — Eat right for your baby
-    - 🔮 **Risk Assessment** — AI-powered health predictions
-    - 🏛️ **Government Schemes** — Get the money you deserve
-    - 📈 **Health Dashboard** — See your progress
-    - 🧠 **Mental Health** — Postpartum depression screening
+    - 💊 Medicine Reminders - Never miss your supplements
+    - 🥗 Nutrition Guide - Eat right for your baby
+    - 🔮 Risk Assessment - AI-powered health predictions
+    - 🏛️ Government Schemes - Get the money you deserve
+    - 📈 Health Dashboard - See your progress
+    - 🧠 Mental Health - Postpartum depression screening
     
     ### How to use:
     1. First, go to **📝 Register** and enter your details
