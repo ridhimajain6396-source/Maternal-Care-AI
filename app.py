@@ -4,6 +4,236 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.ensemble import RandomForestClassifier
+import sqlite3
+from datetime import datetime, date, timedelta
+
+# ============================================
+# DATABASE FUNCTIONS
+# ============================================
+def create_tables():
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            age INTEGER,
+            phone TEXT,
+            village TEXT,
+            district TEXT,
+            state TEXT,
+            lmp_date TEXT,
+            edd_date TEXT,
+            current_week INTEGER,
+            trimester TEXT,
+            weight REAL,
+            height REAL,
+            bmi REAL,
+            blood_group TEXT,
+            previous_pregnancies INTEGER,
+            previous_complications TEXT,
+            registered_on TEXT
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS health_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            log_date TEXT,
+            weight REAL,
+            bp_systolic INTEGER,
+            bp_diastolic INTEGER,
+            hemoglobin REAL,
+            blood_sugar INTEGER,
+            temperature REAL,
+            symptoms TEXT,
+            water_intake INTEGER,
+            sleep_hours INTEGER,
+            mood TEXT
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS medicine_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            log_date TEXT,
+            medicines_taken TEXT,
+            compliance_percent REAL
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS nutrition_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            log_date TEXT,
+            breakfast TEXT,
+            lunch TEXT,
+            snack TEXT,
+            dinner TEXT,
+            diet_score INTEGER
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS risk_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            assessed_on TEXT,
+            risk_level TEXT,
+            probability_low REAL,
+            probability_medium REAL,
+            probability_high REAL
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS ppd_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            screened_on TEXT,
+            total_score INTEGER,
+            risk_level TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+
+def save_user(name, age, phone, village, district, state,
+              lmp_date, edd_date, current_week, trimester,
+              weight, height, bmi, blood_group,
+              previous_pregnancies, previous_complications):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO users
+        (name, age, phone, village, district, state,
+         lmp_date, edd_date, current_week, trimester,
+         weight, height, bmi, blood_group,
+         previous_pregnancies, previous_complications, registered_on)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (name, age, phone, village, district, state,
+          lmp_date, edd_date, current_week, trimester,
+          weight, height, bmi, blood_group,
+          previous_pregnancies, previous_complications,
+          datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    conn.commit()
+    user_id = c.lastrowid
+    conn.close()
+    return user_id
+
+
+def save_health_log(user_id, weight, bp_sys, bp_dia,
+                    hemoglobin, blood_sugar, temperature,
+                    symptoms, water_intake, sleep_hours, mood):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO health_logs
+        (user_id, log_date, weight, bp_systolic, bp_diastolic,
+         hemoglobin, blood_sugar, temperature, symptoms,
+         water_intake, sleep_hours, mood)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (user_id, date.today().strftime("%Y-%m-%d"),
+          weight, bp_sys, bp_dia, hemoglobin, blood_sugar,
+          temperature, str(symptoms), water_intake, sleep_hours, mood))
+    conn.commit()
+    conn.close()
+
+
+def save_medicine_log(user_id, medicines_taken, compliance):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO medicine_logs
+        (user_id, log_date, medicines_taken, compliance_percent)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, date.today().strftime("%Y-%m-%d"),
+          str(medicines_taken), compliance))
+    conn.commit()
+    conn.close()
+
+
+def save_nutrition_log(user_id, breakfast, lunch, snack, dinner, score):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO nutrition_logs
+        (user_id, log_date, breakfast, lunch, snack, dinner, diet_score)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (user_id, date.today().strftime("%Y-%m-%d"),
+          str(breakfast), str(lunch), str(snack), str(dinner), score))
+    conn.commit()
+    conn.close()
+
+
+def save_risk_log(user_id, risk_level, prob_low, prob_med, prob_high):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO risk_logs
+        (user_id, assessed_on, risk_level, probability_low,
+         probability_medium, probability_high)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (user_id, date.today().strftime("%Y-%m-%d"),
+          risk_level, prob_low, prob_med, prob_high))
+    conn.commit()
+    conn.close()
+
+
+def save_ppd_log(user_id, total_score, risk_level):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO ppd_logs
+        (user_id, screened_on, total_score, risk_level)
+        VALUES (?, ?, ?, ?)
+    ''', (user_id, date.today().strftime("%Y-%m-%d"),
+          total_score, risk_level))
+    conn.commit()
+    conn.close()
+
+
+def get_all_users():
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM users')
+    users = c.fetchall()
+    conn.close()
+    return users
+
+
+def get_user_by_phone(phone):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM users WHERE phone = ?', (phone,))
+    user = c.fetchone()
+    conn.close()
+    return user
+
+
+def get_health_logs(user_id):
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM health_logs WHERE user_id = ? ORDER BY log_date', (user_id,))
+    logs = c.fetchall()
+    conn.close()
+    return logs
+
+
+def get_dashboard_stats():
+    conn = sqlite3.connect('maternal_health.db')
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM users')
+    total_users = c.fetchone()[0]
+    c.execute('SELECT COUNT(*) FROM health_logs')
+    total_logs = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM risk_logs WHERE risk_level = 'HIGH RISK'")
+    high_risk = c.fetchone()[0]
+    conn.close()
+    return total_users, total_logs, high_risk
+
+
+# Create tables when app starts
+create_tables()
 
 st.set_page_config(
     page_title="Maternal Health Platform",
@@ -31,12 +261,12 @@ if page == "Home":
     st.markdown("### From Pregnancy to Recovery - Powered by Data")
     st.markdown("---")
 
+    total_users, total_logs, high_risk = get_dashboard_stats()
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Users", "1,247")
-    col2.metric("High Risk Cases", "43")
-    col3.metric("Medicine Compliance", "78%")
+    col1.metric("Total Users", str(total_users))
+    col2.metric("High Risk Cases", str(high_risk))
+    col3.metric("Health Logs", str(total_logs))
     col4.metric("Schemes Claimed", "Rs. 12.5L")
-
     st.markdown("---")
 
     st.markdown("""
@@ -113,6 +343,15 @@ elif page == "Register":
             height_m = height / 100
             bmi = weight / (height_m ** 2)
 
+
+             # Save to database
+            user_id = save_user(
+                name, age, phone, village, district, state,
+                str(lmp_date), str(edd), current_week, trimester,
+                weight, height, round(bmi, 1), blood_group,
+                previous_pregnancies, previous_complications
+            )
+
             st.session_state["user_data"] = {
                 "name": name,
                 "age": age,
@@ -131,6 +370,7 @@ elif page == "Register":
                 "previous_pregnancies": previous_pregnancies,
                 "previous_complications": previous_complications
             }
+            st.session_state["user_id"] = user_id
 
             st.success("Registration Successful")
             st.markdown("---")
@@ -296,6 +536,15 @@ elif page == "Health Tracker":
         }
         st.session_state["health_logs"].append(log)
 
+                # Save to database
+        if "user_id" in st.session_state:
+            save_health_log(
+                st.session_state["user_id"],
+                weight, bp_systolic, bp_diastolic,
+                hemoglobin, blood_sugar, temperature,
+                symptoms, water_intake, sleep_hours, mood
+            )
+
         st.success("Health log saved successfully")
         st.markdown("### Instant Health Analysis")
 
@@ -413,15 +662,21 @@ Why: {med['why']}
         st.markdown("---")
 
     if medicines:
-        compliance = (taken_count / len(medicines)) * 100
-        st.subheader(f"Today's Compliance: {compliance:.0f}%")
+     compliance = (taken_count / len(medicines)) * 100
 
-        if compliance == 100:
-            st.success("Excellent. All medicines taken.")
-        elif compliance >= 50:
-            st.warning("You missed some medicines. Try to take them all.")
-        else:
-            st.error("Please take your medicines. They are very important.")
+    # Save medicine log to database
+    if "user_id" in st.session_state:
+        medicines_taken = [med["name"] for i, med in enumerate(medicines) if st.session_state.get(f"med_{i}", False)]
+        save_medicine_log(st.session_state["user_id"], medicines_taken, compliance)
+
+    st.subheader(f"Today's Compliance: {compliance:.0f}%")
+
+    if compliance == 100:
+        st.success("Excellent. All medicines taken.")
+    elif compliance >= 50:
+        st.warning("You missed some medicines. Try to take them all.")
+    else:
+        st.error("Please take your medicines. They are very important.")
 
     st.markdown("---")
     st.subheader("Important Tips")
@@ -490,6 +745,12 @@ elif page == "Nutrition Guide":
             has_carbs = any(f in all_foods for f in carb_foods)
 
             score = sum([has_protein, has_iron, has_calcium, has_vitamins, has_carbs])
+                        # Save nutrition log to database
+            if "user_id" in st.session_state:
+                save_nutrition_log(
+                    st.session_state["user_id"],
+                    breakfast, lunch, snack, dinner, score
+                )
 
             c1, c2 = st.columns(2)
 
@@ -842,46 +1103,47 @@ elif page == "Dashboard":
     with tab1:
         st.subheader("Your Health Summary")
 
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Current Week", "24", "+1")
-        col2.metric("Weight", "62 kg", "+0.5 kg")
-        col3.metric("Risk Level", "LOW")
-        col4.metric("Medicine Score", "85%", "+5%")
+    total_users, total_logs, high_risk = get_dashboard_stats()
 
-        st.markdown("---")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Users", str(total_users))
+    col2.metric("High Risk Cases", str(high_risk))
+    col3.metric("Health Logs", str(total_logs))
+    col4.metric("Schemes Claimed", "Rs. 12.5L")
+    st.markdown("---")
 
-        weeks_data = list(range(1, 25))
-        weight_data = [52, 52, 52.5, 53, 53, 53.5, 54, 54.5, 55, 55.5,
+    weeks_data = list(range(1, 25))
+    weight_data = [52, 52, 52.5, 53, 53, 53.5, 54, 54.5, 55, 55.5,
                        56, 56.5, 57, 58, 58.5, 59, 59.5, 60, 60.5, 61,
                        61, 61.5, 62, 62]
-        ideal_min = [51, 51, 51.5, 52, 52.5, 53, 53.5, 54, 54.5, 55,
+    ideal_min = [51, 51, 51.5, 52, 52.5, 53, 53.5, 54, 54.5, 55,
                      55.5, 56, 56.5, 57, 57.5, 58, 58.5, 59, 59.5, 60,
                      60, 60.5, 61, 61]
-        ideal_max = [53, 53, 53.5, 54, 54.5, 55, 55.5, 56, 56.5, 57,
+    ideal_max = [53, 53, 53.5, 54, 54.5, 55, 55.5, 56, 56.5, 57,
                      57.5, 58, 58.5, 59.5, 60, 60.5, 61, 61.5, 62, 62.5,
                      63, 63.5, 64, 64]
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=weeks_data, y=weight_data, name="Your Weight", line=dict(color="blue", width=3)))
-        fig.add_trace(go.Scatter(x=weeks_data, y=ideal_min, name="Ideal Min", line=dict(color="green", dash="dash")))
-        fig.add_trace(go.Scatter(x=weeks_data, y=ideal_max, name="Ideal Max", line=dict(color="green", dash="dash")))
-        fig.update_layout(title="Weight Progress Over Pregnancy", xaxis_title="Week", yaxis_title="Weight (kg)", height=400)
-        st.plotly_chart(fig, use_container_width=True)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=weeks_data, y=weight_data, name="Your Weight", line=dict(color="blue", width=3)))
+    fig.add_trace(go.Scatter(x=weeks_data, y=ideal_min, name="Ideal Min", line=dict(color="green", dash="dash")))
+    fig.add_trace(go.Scatter(x=weeks_data, y=ideal_max, name="Ideal Max", line=dict(color="green", dash="dash")))
+    fig.update_layout(title="Weight Progress Over Pregnancy", xaxis_title="Week", yaxis_title="Weight (kg)", height=400)
+    st.plotly_chart(fig, use_container_width=True)
 
-        bp_sys_data = [110, 112, 115, 118, 116, 120, 118, 122, 119, 121,
+    bp_sys_data = [110, 112, 115, 118, 116, 120, 118, 122, 119, 121,
                        120, 118, 115, 120, 122, 125, 118, 120, 119, 121,
                        123, 120, 118, 120]
-        bp_dia_data = [70, 72, 74, 75, 73, 76, 74, 78, 75, 77,
+    bp_dia_data = [70, 72, 74, 75, 73, 76, 74, 78, 75, 77,
                        76, 74, 72, 76, 78, 80, 74, 76, 75, 77,
                        79, 76, 74, 76]
 
-        fig2 = go.Figure()
-        fig2.add_trace(go.Scatter(x=weeks_data, y=bp_sys_data, name="Systolic", line=dict(color="red", width=2)))
-        fig2.add_trace(go.Scatter(x=weeks_data, y=bp_dia_data, name="Diastolic", line=dict(color="orange", width=2)))
-        fig2.add_hline(y=140, line_dash="dash", line_color="red", annotation_text="Danger: Systolic > 140")
-        fig2.add_hline(y=90, line_dash="dash", line_color="orange", annotation_text="Danger: Diastolic > 90")
-        fig2.update_layout(title="Blood Pressure Trend", xaxis_title="Week", yaxis_title="BP (mmHg)", height=400)
-        st.plotly_chart(fig2, use_container_width=True)
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=weeks_data, y=bp_sys_data, name="Systolic", line=dict(color="red", width=2)))
+    fig2.add_trace(go.Scatter(x=weeks_data, y=bp_dia_data, name="Diastolic", line=dict(color="orange", width=2)))
+    fig2.add_hline(y=140, line_dash="dash", line_color="red", annotation_text="Danger: Systolic > 140")
+    fig2.add_hline(y=90, line_dash="dash", line_color="orange", annotation_text="Danger: Diastolic > 90")
+    fig2.update_layout(title="Blood Pressure Trend", xaxis_title="Week", yaxis_title="BP (mmHg)", height=400)
+    st.plotly_chart(fig2, use_container_width=True)
 
     with tab2:
         st.subheader("Weekly Trends")
